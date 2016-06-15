@@ -1,6 +1,6 @@
 //======================================================================
 //
-// 6502.v
+// m6502.v
 // ------
 // Implementation of a MOS 6502 compatible CPU core.
 // Note: This is not going to be a cycle accurate model.
@@ -37,7 +37,7 @@
 //
 //======================================================================
 
-module 65026(
+module m6502(
              // Clock and reset.
              input wire            clk,
              input wire            reset_n,
@@ -72,11 +72,11 @@ module 65026(
 
   reg          cs_reg;
   reg          cs_new;
-  reg          cs_we
+  reg          cs_we;
 
   reg          wr_reg;
   reg          wr_new;
-  reg          wr_we
+  reg          wr_we;
 
   reg [15 : 0] addr_reg;
   reg [15 : 0] addr_new;
@@ -119,7 +119,7 @@ module 65026(
             y_reg <= y_new;
 
           if (cs_we)
-            cs_res <= cs_new;
+            cs_reg <= cs_new;
 
           if (wr_we)
             wr_reg <= wr_new;
@@ -133,5 +133,5 @@ module 65026(
 endmodule // 6502
 
 //======================================================================
-// EOF 6502.v
+// EOF m6502.v
 //======================================================================
