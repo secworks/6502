@@ -38,11 +38,9 @@
 //======================================================================
 
 module m6502(
-             // Clock and reset.
              input wire            clk,
              input wire            reset_n,
 
-             // Data ports.
              output wire           cs,
              output wire           wr,
              output wire  [15 : 0] address,
@@ -53,6 +51,7 @@ module m6502(
   //----------------------------------------------------------------
   // Internal constant and parameter definitions.
   //----------------------------------------------------------------
+  localparam BOOT_ADDR = 16'h1000;
 
 
   //----------------------------------------------------------------
@@ -78,17 +77,64 @@ module m6502(
   reg          wr_new;
   reg          wr_we;
 
-  reg [15 : 0] addr_reg;
-  reg [15 : 0] addr_new;
-  reg          addr_we;
+  reg [7 : 0]  opcode_reg;
+  reg          opcode_we;
+
+  reg [15 : 0] pc_reg;
+  reg [15 : 0] pc_new;
+  reg          pc_inc;
+  reg          pc_set;
+  reg          pc_we;
+
+  reg [7 : 0]  write_data_reg;
+  reg [7 : 0]  write_data_new;
+  reg          write_data_we;
+
+  reg [7 : 0]  read_data_reg;
+  reg          read_data_we;
+
+  reg [7 : 0]  addr_lo_reg;
+  reg [7 : 0]  addr_lo_new;
+  reg          addr_lo_we;
+  reg [7 : 0]  addr_hi_reg;
+  reg [7 : 0]  addr_hi_new;
+  reg          addr_hi_we;
+
+  reg [3 : 0]  m6502_ctrl_reg;
+  reg [3 : 0]  m6502_ctrl_new;
+  reg          m6502_ctrl_we;
+
+
+  //----------------------------------------------------------------
+  // Wires.
+  //----------------------------------------------------------------
+  reg [15 : 0]  muxed_address;
+  wire [1 : 0]  opcode_length;
+  wire [15 : 0] data16;
 
 
   //----------------------------------------------------------------
   // Concurrent connectivity for ports etc.
   //----------------------------------------------------------------
-  assign cs      = cs_reg;
-  assign wr      = wr_reg;
-  assign address = addr_reg;
+  assign cs         = cs_reg;
+  assign wr         = wr_reg;
+  assign address    = muxed_address;
+  assign write_data = write_data_reg;
+
+
+  //----------------------------------------------------------------
+  // Instantiations.
+  //----------------------------------------------------------------
+  m6502_decoder decoder(
+                        .clk(clk),
+                        .reset_n(reset_n),
+
+                        .opcode(opcode_reg),
+
+                        .instr_len(),
+                        .alu_op(),
+                        .destination()
+                        );
 
 
   //----------------------------------------------------------------
@@ -100,12 +146,17 @@ module m6502(
 
       if (!reset_n)
         begin
-          a_reg    <= 0;
-          x_reg    <= 0;
-          y_reg    <= 0;
-          wr_reg   <= 0;
-          cs_reg   <= 0;
-          addr_reg <= 16'h0;
+          a_reg          <= 8'h0;
+          x_reg          <= 8'h0;
+          y_reg          <= 8'h0;
+          wr_reg         <= 0;
+          cs_reg         <= 0;
+          opcode_reg     <= 8'h0;
+          read_data_reg  <= 8'h0;
+          write_data_reg <= 8'h0;
+          addr_lo_reg    <= 8'h0;
+          addr_hi_reg    <= 8'h0;
+          pc_reg         <= BOOT_ADDR;
         end
       else
         begin
@@ -124,11 +175,77 @@ module m6502(
           if (wr_we)
             wr_reg <= wr_new;
 
-          if (addr_we)
-            addr_reg <= addr_new;
+          if (opcode_we)
+            opcode_reg <= read_data;
+
+          if (read_data_we)
+            read_data_reg <= read_data;
+
+          if (write_data_we)
+            write_data_reg <= write_data_new;
+
+          if (addr_lo_we)
+            addr_lo_reg <= addr_lo_new;
+
+          if (addr_hi_we)
+            addr_hi_reg <= addr_hi_new;
+
+          if (pc_we)
+            pc_reg <= pc_new;
 
         end
     end // reg_update
+
+
+  //----------------------------------------------------------------
+  // pc_update
+  // Can inc to next instruction and jump to a given 16 bit address.
+  //----------------------------------------------------------------
+  always @*
+    begin : pc_update
+      pc_we = 0;
+      pc_new = 16'h0;
+
+      if (pc_inc)
+        begin
+          pc_we = 1;
+          pc_new = pc_reg + opcode_length;
+        end
+
+      if (pc_set)
+        begin
+          pc_we = 1;
+          pc_new = data16;
+        end
+    end // pc_update
+
+
+  //----------------------------------------------------------------
+  // addr_mux
+  //----------------------------------------------------------------
+  always @*
+    begin : addr_mux
+      muxed_address = 16'h0;
+    end // addr_mux
+
+
+  //----------------------------------------------------------------
+  // m6502_ctrl
+  // Main control FSM for the m6502 model.
+  //----------------------------------------------------------------
+  always @*
+    begin : m6502_ctrl
+      opcode_we = 0;
+      pc_inc    = 0;
+      pc_set    = 0;
+
+      case (m6502_ctrl_reg)
+
+        default:
+          begin
+          end
+      endcase // case (m6502_ctrl_reg)
+    end // m6502_ctrl
 
 endmodule // 6502
 

@@ -36,7 +36,7 @@
 #
 #===================================================================
 
-CPU_SRC=../src/rtl/6502.v
+CPU_SRC=../src/rtl/m6502.v ../src/rtl/m6502_decoder.v
 
 CC=iverilog
 LINT=verilator
