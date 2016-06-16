@@ -112,6 +112,12 @@ module m6502(
   wire [1 : 0]  opcode_length;
   wire [15 : 0] data16;
 
+  wire [2 : 0]  decoder_ilen;
+  wire [1 : 0]  decoder_opa;
+  wire [1 : 0]  decoder_opb;
+  wire [2 : 0]  decoder_alu_op;
+  wire [1 : 0]  decoder_dest;
+
 
   //----------------------------------------------------------------
   // Concurrent connectivity for ports etc.
@@ -131,9 +137,11 @@ module m6502(
 
                         .opcode(opcode_reg),
 
-                        .instr_len(),
-                        .alu_op(),
-                        .destination()
+                        .instr_len(decoder_ilen),
+                        .opa(decoder_opa),
+                        .opb(decoder_opb),
+                        .alu_op(decoder_alu_op),
+                        .destination(decoder_dest)
                         );
 
 
@@ -195,6 +203,39 @@ module m6502(
 
         end
     end // reg_update
+
+
+  //----------------------------------------------------------------
+  // alu
+  //----------------------------------------------------------------
+  always @*
+    begin : alu
+      reg [7 : 0] opa;
+      reg [7 : 0] opb;
+      reg [7 : 0] result;
+
+//      case (decoder_opa)
+//
+//      endcase // case (decoder_opa)
+//
+//
+//
+//      case (decoder_opa)
+//
+//      endcase // case (decoder_opa)
+//
+//
+//
+//      case (decoder_alu_op)
+//
+//      endcase // case (decoder_alu_op)
+//
+//
+//
+//      case (decoder_dest)
+//
+//      endcase // case (decoder_dest)
+    end // alu
 
 
   //----------------------------------------------------------------
