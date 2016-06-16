@@ -44,6 +44,8 @@ module m6502_decoder(
                      input wire [7 : 0]  opcode,
 
                      output wire [1 : 0] instr_len,
+                     output wire [1 : 0] opa,
+                     output wire [1 : 0] opb,
                      output wire [1 : 0] alu_op,
                      output wire [1 : 0] destination
                     );
@@ -62,7 +64,13 @@ module m6502_decoder(
   localparam ALU_ADC  = 2'h1;
 
   // M6502 Opcodes:
+  localparam OP_BRK     = 8'h00;
+  localparam OP_JMP     = 8'h4c;
+  localparam OP_TXA     = 8'h8a;
   localparam OP_LDA_IMM = 8'ha9;
+  localparam OP_TAX     = 8'haa;
+  localparam OP_DEX     = 8'hca;
+  localparam OP_INX     = 8'he8;
 
 
   //----------------------------------------------------------------
