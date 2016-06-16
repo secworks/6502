@@ -132,11 +132,6 @@ module m6502(
   // Instantiations.
   //----------------------------------------------------------------
   m6502_decoder decoder(
-                        .clk(clk),
-                        .reset_n(reset_n),
-
-                        .opcode(opcode_reg),
-
                         .instr_len(decoder_ilen),
                         .opa(decoder_opa),
                         .opb(decoder_opb),

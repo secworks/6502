@@ -38,31 +38,19 @@
 //======================================================================
 
 module m6502_decoder(
-                     input wire          clk,
-                     input wire          reset_n,
-
                      input wire [7 : 0]  opcode,
 
-                     output wire [1 : 0] instr_len,
-                     output wire [1 : 0] opa,
-                     output wire [1 : 0] opb,
-                     output wire [1 : 0] alu_op,
-                     output wire [1 : 0] destination
+                     output wire [2 : 0] instr_len,
+                     output wire [2 : 0] opa,
+                     output wire [2 : 0] opb,
+                     output wire [2 : 0] alu_op,
+                     output wire [2 : 0] destination
                     );
+
 
   //----------------------------------------------------------------
   // Internal constant and parameter definitions.
   //----------------------------------------------------------------
-  // Symbolic names for destination codes.
-  localparam DEST_MEM  = 2'h0;
-  localparam DEST_AREG = 2'h1;
-  localparam DEST_XREG = 2'h2;
-  localparam DEST_YREG = 2'h3;
-
-  // Symbolic names for ALU operations.
-  localparam ALU_NONE = 2'h0;
-  localparam ALU_ADC  = 2'h1;
-
   // M6502 Opcodes:
   localparam OP_BRK     = 8'h00;
   localparam OP_JMP     = 8'h4c;
@@ -71,6 +59,22 @@ module m6502_decoder(
   localparam OP_TAX     = 8'haa;
   localparam OP_DEX     = 8'hca;
   localparam OP_INX     = 8'he8;
+
+  // Symbolic names for ALU operands.
+  localparam OP_AREG  = 3'h0;
+  localparam OP_XREG  = 3'h1;
+  localparam OP_YREG  = 3'h2;
+  localparam OP_ONE   = 3'h7;
+
+  // Symbolic names for ALU operations.
+  localparam ALU_NONE = 3'h0;
+  localparam ALU_ADC  = 3'h1;
+
+  // Symbolic names for destination codes.
+  localparam DEST_MEM  = 3'h0;
+  localparam DEST_AREG = 3'h1;
+  localparam DEST_XREG = 3'h2;
+  localparam DEST_YREG = 3'h3;
 
 
   //----------------------------------------------------------------
@@ -111,6 +115,15 @@ module m6502_decoder(
             ilen = 2'h2;
             dest = DEST_AREG;
             alu  = ALU_NONE;
+          end
+
+        OP_INX:
+          begin
+            ilen = 2'h1;
+            opa = OP_XREG;
+            opb = OP_ONE;
+            alu  = ALU_ADC;
+            dest = DEST_XREG;
           end
 
         default:
