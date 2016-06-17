@@ -136,10 +136,10 @@ module m6502(
   reg  [1 : 0]  dmux_ctrl;
 
   wire [2 : 0]  decoder_ilen;
-  wire [1 : 0]  decoder_opa;
-  wire [1 : 0]  decoder_opb;
+  wire [2 : 0]  decoder_opa;
+  wire [2 : 0]  decoder_opb;
   wire [2 : 0]  decoder_alu_op;
-  wire [1 : 0]  decoder_dest;
+  wire [2 : 0]  decoder_dest;
 
 
   //----------------------------------------------------------------
@@ -155,6 +155,7 @@ module m6502(
   // Instantiations.
   //----------------------------------------------------------------
   m6502_decoder decoder(
+                        .opcode(opcode_reg),
                         .instr_len(decoder_ilen),
                         .opa(decoder_opa),
                         .opb(decoder_opb),

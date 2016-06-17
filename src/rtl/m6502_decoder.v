@@ -80,14 +80,16 @@ module m6502_decoder(
   //----------------------------------------------------------------
   // Registers including update variables and write enable.
   //----------------------------------------------------------------
-  reg [1 : 0] ilen;
-  reg [1 : 0] dest;
-  reg [1 : 0] alu;
 
 
   //----------------------------------------------------------------
   // Wires.
   //----------------------------------------------------------------
+  reg [2 : 0] ilen;
+  reg [2 : 0] dest;
+  reg [2 : 0] alu;
+  reg [2 : 0] a;
+  reg [2 : 0] b;
 
 
   //----------------------------------------------------------------
@@ -96,6 +98,8 @@ module m6502_decoder(
   assign instr_len   = ilen;
   assign destination = dest;
   assign alu_op      = alu;
+  assign opa         = a;
+  assign opb         = b;
 
 
   //----------------------------------------------------------------
@@ -120,8 +124,8 @@ module m6502_decoder(
         OP_INX:
           begin
             ilen = 2'h1;
-            opa = OP_XREG;
-            opb = OP_ONE;
+            a    = OP_XREG;
+            b    = OP_ONE;
             alu  = ALU_ADC;
             dest = DEST_XREG;
           end
