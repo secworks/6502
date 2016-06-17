@@ -44,6 +44,7 @@ module m6502(
              output wire           cs,
              output wire           wr,
              output wire  [15 : 0] address,
+             input wire            mem_ready,
              input wire   [7 : 0]  read_data,
              output wire  [7 : 0]  write_data
             );
@@ -51,7 +52,23 @@ module m6502(
   //----------------------------------------------------------------
   // Internal constant and parameter definitions.
   //----------------------------------------------------------------
-  localparam BOOT_ADDR = 16'h1000;
+  localparam BOOT_ADDR = 16'h0000;
+
+  localparam AMUX_TMP = 1'h0;
+  localparam AMUX_PC  = 1'h1;
+
+  localparam DMUX_AREG = 2'h0;
+  localparam DMUX_XREG = 2'h1;
+  localparam DMUX_YREG = 2'h2;
+
+  localparam M6502_CTRL_IDLE          = 3'h0;
+  localparam M6502_CTRL_GET_OPCODE    = 3'h1;
+  localparam M6502_CTRL_STORE_OPCODE  = 3'h2;
+  localparam M6502_CTRL_DECODE_OPCODE = 3'h3;
+  localparam M6502_CTRL_DATA          = 3'h4;
+  localparam M6502_CTRL_EXECUTE       = 3'h5;
+  localparam M6502_CTRL_STORE_DATA    = 3'h6;
+  localparam M6502_CTRL_UPDATE_PC     = 3'h7;
 
 
   //----------------------------------------------------------------
@@ -84,6 +101,7 @@ module m6502(
   reg [15 : 0] pc_new;
   reg          pc_inc;
   reg          pc_set;
+  reg          pc_rst;
   reg          pc_we;
 
   reg [7 : 0]  write_data_reg;
@@ -100,8 +118,8 @@ module m6502(
   reg [7 : 0]  addr_hi_new;
   reg          addr_hi_we;
 
-  reg [3 : 0]  m6502_ctrl_reg;
-  reg [3 : 0]  m6502_ctrl_new;
+  reg [2 : 0]  m6502_ctrl_reg;
+  reg [2 : 0]  m6502_ctrl_new;
   reg          m6502_ctrl_we;
 
 
@@ -111,6 +129,11 @@ module m6502(
   reg [15 : 0]  muxed_address;
   wire [1 : 0]  opcode_length;
   wire [15 : 0] data16;
+
+  reg [7 : 0]   muxed_wr_data;
+
+  reg           amux_ctrl;
+  reg  [1 : 0]  dmux_ctrl;
 
   wire [2 : 0]  decoder_ilen;
   wire [1 : 0]  decoder_opa;
@@ -125,7 +148,7 @@ module m6502(
   assign cs         = cs_reg;
   assign wr         = wr_reg;
   assign address    = muxed_address;
-  assign write_data = write_data_reg;
+  assign write_data = muxed_wr_data;
 
 
   //----------------------------------------------------------------
@@ -160,6 +183,7 @@ module m6502(
           addr_lo_reg    <= 8'h0;
           addr_hi_reg    <= 8'h0;
           pc_reg         <= BOOT_ADDR;
+          m6502_ctrl_reg <= M6502_CTRL_IDLE;
         end
       else
         begin
@@ -196,6 +220,8 @@ module m6502(
           if (pc_we)
             pc_reg <= pc_new;
 
+          if (m6502_ctrl_we)
+            m6502_ctrl_reg <= m6502_ctrl_new;
         end
     end // reg_update
 
@@ -235,23 +261,35 @@ module m6502(
 
   //----------------------------------------------------------------
   // pc_update
-  // Can inc to next instruction and jump to a given 16 bit address.
+  //
+  // Logic for updating the program counter. Right now it supports
+  // resetting to the boot vector, increasing by one and setting
+  // to whats in the 16 bit data register. There will quite
+  // probably be functions for setting based on the stack, based
+  // on result from the ALU. That will be handled as suboperations
+  // for the pc_set.
   //----------------------------------------------------------------
   always @*
     begin : pc_update
-      pc_we = 0;
       pc_new = 16'h0;
+      pc_we  = 0;
+
+      if (pc_rst)
+        begin
+          pc_new = BOOT_ADDR;
+          pc_we  = 1;
+        end
 
       if (pc_inc)
         begin
+          pc_new = pc_reg + 1'h1;
           pc_we = 1;
-          pc_new = pc_reg + opcode_length;
         end
 
       if (pc_set)
         begin
-          pc_we = 1;
           pc_new = data16;
+          pc_we = 1;
         end
     end // pc_update
 
@@ -262,7 +300,29 @@ module m6502(
   always @*
     begin : addr_mux
       muxed_address = 16'h0;
+
+      if (amux_ctrl == AMUX_PC)
+        muxed_address = pc_reg;
+      else
+        muxed_address = 16'h0;
     end // addr_mux
+
+
+  //----------------------------------------------------------------
+  // data_mux
+  //
+  // Mux for selecting source for write data.
+  //----------------------------------------------------------------
+  always @*
+    begin : data_mux
+      muxed_wr_data = 16'h0;
+
+      case (dmux_ctrl)
+        DMUX_AREG: muxed_wr_data = a_reg;
+        DMUX_XREG: muxed_wr_data = x_reg;
+        DMUX_YREG: muxed_wr_data = y_reg;
+      endcase // case (dmux_ctrl)
+    end // data_mux
 
 
   //----------------------------------------------------------------
@@ -271,11 +331,60 @@ module m6502(
   //----------------------------------------------------------------
   always @*
     begin : m6502_ctrl
-      opcode_we = 0;
-      pc_inc    = 0;
-      pc_set    = 0;
+      opcode_we      = 0;
+      pc_inc         = 0;
+      pc_set         = 0;
+      pc_rst         = 0;
+      cs_new         = 0;
+      cs_we          = 0;
+      wr_new         = 0;
+      wr_we          = 0;
+      amux_ctrl      = AMUX_PC;
+      dmux_ctrl      = DMUX_AREG;
+
+      m6502_ctrl_new = M6502_CTRL_IDLE;
+      m6502_ctrl_we  = 1;
 
       case (m6502_ctrl_reg)
+        // Initial state after reset. Set PC and go fetch
+        // the first instruction.
+        M6502_CTRL_IDLE:
+          begin
+            pc_rst         = 1;
+            m6502_ctrl_new = M6502_CTRL_GET_OPCODE;
+            m6502_ctrl_we  = 1;
+          end
+
+        // Signal the mem system that we want to read a byte.
+        M6502_CTRL_GET_OPCODE:
+          begin
+            cs_new         = 1;
+            cs_we          = 1;
+            amux_ctrl      = AMUX_PC;
+            m6502_ctrl_new = M6502_CTRL_STORE_OPCODE;
+            m6502_ctrl_we  = 1;
+          end
+
+        // When we get a byte we store it and stop reading from the memory.
+        // We also increase the pc so that it is ready for the next read op.
+        M6502_CTRL_STORE_OPCODE:
+          begin
+            if (mem_ready)
+              begin
+                pc_inc         = 1;
+                cs_new         = 0;
+                cs_we          = 1;
+                opcode_we      = 1;
+                m6502_ctrl_new = M6502_CTRL_DECODE_OPCODE;
+                m6502_ctrl_we  = 1;
+              end
+          end
+
+        // The opcode has been decoded and we need to either read more data
+        // or directly execute the instruction.
+        M6502_CTRL_DECODE_OPCODE:
+          begin
+          end
 
         default:
           begin
