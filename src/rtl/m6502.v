@@ -45,6 +45,7 @@ module m6502(
              output wire           wr,
              output wire  [15 : 0] address,
              input wire            mem_ready,
+             input wire            data_valid,
              input wire   [7 : 0]  read_data,
              output wire  [7 : 0]  write_data
             );
