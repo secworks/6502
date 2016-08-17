@@ -109,21 +109,21 @@ module m6502_decoder(
   //----------------------------------------------------------------
   always @*
     begin : decoder
-      ilen = 2'h0;
+      ilen = 3'h0;
       dest = DEST_MEM;
       alu  = ALU_NONE;
 
       case (opcode)
         OP_LDA_IMM:
           begin
-            ilen = 2'h2;
+            ilen = 3'h2;
             dest = DEST_AREG;
             alu  = ALU_NONE;
           end
 
         OP_INX:
           begin
-            ilen = 2'h1;
+            ilen = 3'h1;
             a    = OP_XREG;
             b    = OP_ONE;
             alu  = ALU_ADC;
