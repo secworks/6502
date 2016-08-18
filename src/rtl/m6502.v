@@ -87,6 +87,18 @@ module m6502(
   reg [7 : 0]  y_new;
   reg          y_we;
 
+  reg          carry_reg;
+  wire         carry_new;
+  reg          carry_we;
+
+  reg          zero_reg;
+  wire         zero_new;
+  reg          zero_we;
+
+  reg          overflow_reg;
+  new          overflow_new;
+  reg          overflow_we;
+
   reg          cs_reg;
   reg          cs_new;
   reg          cs_we;
@@ -142,6 +154,12 @@ module m6502(
   wire [2 : 0]  decoder_alu_op;
   wire [2 : 0]  decoder_dest;
 
+  reg [7 : 0] alu_operation;
+  reg [7 : 0] alu_op_a;
+  reg [7 : 0] alu_op_a;
+  wire [7 : 0] alu_result;
+
+
 
   //----------------------------------------------------------------
   // Concurrent connectivity for ports etc.
@@ -163,6 +181,17 @@ module m6502(
                         .alu_op(decoder_alu_op),
                         .destination(decoder_dest)
                         );
+
+  m6502_alu alu(
+                operation(alu_operation),
+                op_a(alu_op_a),
+                op_b(alu_op_a),
+                carry_in(carry_reg),
+                result(alu_result),
+                carry_out(carry_new),
+                overflow(overflow_new),
+                zero(zero_new)
+                );
 
 
   //----------------------------------------------------------------
