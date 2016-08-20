@@ -36,31 +36,25 @@
 #
 #===================================================================
 
-CPU_SRC=../src/rtl/m6502.v ../src/rtl/m6502_decoder.v
+CPU_SRC=../src/rtl/m6502.v ../src/rtl/m6502_decoder.v  ../src/rtl/m6502_alu.v
 
 CC=iverilog
 LINT=verilator
 
 
-all: cpu
+all: cpu.sim
 
 
-cpu:  $(CPU_SRC)
-	$(CC) -Wall -o cpu $(CPU_SRC)
+cpu.sim:  $(CPU_SRC)
+	$(CC) -Wall -o cpu.sim $(CPU_SRC)
 
 
 lint:
-	verilator --lint-only  $(CPU_SRC)
-
-
-debug:
-	@echo "No debug available."
+	verilator -Wall --lint-only  $(CPU_SRC)
 
 
 clean:
-	rm -f top.sim
-	rm -f core.sim
-	rm -f wmem.sim
+	rm -f cpu.sim
 
 
 help:
@@ -68,8 +62,7 @@ help:
 	@echo "------------------"
 	@echo "all:      Build all simulation targets."
 	@echo "lint:     Run the linter on both the block based and the stream based top levels."
-	@echo "debug:    Print the internal varibles."
-	@echo "clean:    Delete all built files."
+	@echo "clean:    Remove all filed built."
 
 #===================================================================
 # EOF Makefile
