@@ -45,6 +45,7 @@ module m6502_alu(
                  input wire          carry_in,
                  output wire [7 : 0] result,
                  output wire         carry_out,
+                 output wire         overflow,
                  output wire         zero
                 );
 

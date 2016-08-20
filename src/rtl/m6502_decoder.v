@@ -44,7 +44,10 @@ module m6502_decoder(
                      output wire [2 : 0] opa,
                      output wire [2 : 0] opb,
                      output wire [2 : 0] alu_op,
-                     output wire [2 : 0] destination
+                     output wire [2 : 0] destination,
+                     output wire         update_carry,
+                     output wire         update_zero,
+                     output wire         update_overflow
                     );
 
 
@@ -90,16 +93,22 @@ module m6502_decoder(
   reg [2 : 0] alu;
   reg [2 : 0] a;
   reg [2 : 0] b;
+  reg         carry;
+  reg         zero;
+  reg         overflow;
 
 
   //----------------------------------------------------------------
   // Concurrent connectivity for ports etc.
   //----------------------------------------------------------------
-  assign instr_len   = ilen;
-  assign destination = dest;
-  assign alu_op      = alu;
-  assign opa         = a;
-  assign opb         = b;
+  assign instr_len       = ilen;
+  assign destination     = dest;
+  assign alu_op          = alu;
+  assign opa             = a;
+  assign opb             = b;
+  assign update_carry    = carry;
+  assign update_zero     = zero;
+  assign update_overflow = overflow;
 
 
   //----------------------------------------------------------------
@@ -109,9 +118,13 @@ module m6502_decoder(
   //----------------------------------------------------------------
   always @*
     begin : decoder
-      ilen = 3'h0;
-      dest = DEST_MEM;
-      alu  = ALU_NONE;
+      ilen     = 3'h0;
+      dest     = DEST_MEM;
+      alu      = ALU_NONE;
+      carry    = 0;
+      zero     = 0;
+      overflow = 0;
+
 
       case (opcode)
         OP_LDA_IMM:

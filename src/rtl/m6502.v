@@ -75,9 +75,9 @@ module m6502(
   //----------------------------------------------------------------
   // Registers including update variables and write enable.
   //----------------------------------------------------------------
-  reg [7 : 0]  a_reg;
-  reg [7 : 0]  a_new;
-  reg          a_we;
+  reg [7 : 0]  alu_reg;
+  reg [7 : 0]  alu_new;
+  reg          alu_we;
 
   reg [7 : 0]  x_reg;
   reg [7 : 0]  x_new;
@@ -96,7 +96,7 @@ module m6502(
   reg          zero_we;
 
   reg          overflow_reg;
-  new          overflow_new;
+  reg          overflow_new;
   reg          overflow_we;
 
   reg          cs_reg;
@@ -153,12 +153,14 @@ module m6502(
   wire [2 : 0]  decoder_opb;
   wire [2 : 0]  decoder_alu_op;
   wire [2 : 0]  decoder_dest;
+  wire          decoder_carry;
+  wire          decoder_zero;
+  wire          decoder_overflow;
 
-  reg [7 : 0] alu_operation;
-  reg [7 : 0] alu_op_a;
-  reg [7 : 0] alu_op_a;
-  wire [7 : 0] alu_result;
-
+  reg [7 : 0]   alu_operation;
+  reg [7 : 0]   alu_op_a;
+  reg [7 : 0]   alu_op_b;
+  wire [7 : 0]  alu_result;
 
 
   //----------------------------------------------------------------
@@ -179,19 +181,23 @@ module m6502(
                         .opa(decoder_opa),
                         .opb(decoder_opb),
                         .alu_op(decoder_alu_op),
-                        .destination(decoder_dest)
-                        );
+                        .destination(decoder_dest),
+                        .update_carry(decoder_carry),
+                        .update_zero(decoder_zero),
+                        .update_overflow(decoder_overflow)
+                       );
 
   m6502_alu alu(
                 operation(alu_operation),
                 op_a(alu_op_a),
                 op_b(alu_op_a),
                 carry_in(carry_reg),
+                carry_in(carry_reg),
                 result(alu_result),
                 carry_out(carry_new),
-                overflow(overflow_new),
-                zero(zero_new)
-                );
+                zero(zero_new),
+                overflow(overflow_new)
+               );
 
 
   //----------------------------------------------------------------
@@ -203,9 +209,12 @@ module m6502(
 
       if (!reset_n)
         begin
-          a_reg          <= 8'h0;
+          alu_reg        <= 8'h0;
           x_reg          <= 8'h0;
           y_reg          <= 8'h0;
+          carry_reg      <= 0;
+          zero_reg       <= 0;
+          overflow_reg   <= 0;
           wr_reg         <= 0;
           cs_reg         <= 0;
           opcode_reg     <= 8'h0;
@@ -218,14 +227,23 @@ module m6502(
         end
       else
         begin
-          if (a_we)
-            a_reg <= a_new;
+          if (alu_we)
+            alu_reg <= alu_new;
 
           if (x_we)
             x_reg <= x_new;
 
           if (y_we)
             y_reg <= y_new;
+
+          if (carry_we)
+            carry_reg <= carry_new;
+
+          if (zero_we)
+            zero_reg <= zero_new;
+
+          if (overflow_we)
+            overflow_reg <= overflow_new;
 
           if (cs_we)
             cs_reg <= cs_new;
@@ -255,39 +273,6 @@ module m6502(
             m6502_ctrl_reg <= m6502_ctrl_new;
         end
     end // reg_update
-
-
-  //----------------------------------------------------------------
-  // alu
-  //----------------------------------------------------------------
-  always @*
-    begin : alu
-      reg [7 : 0] opa;
-      reg [7 : 0] opb;
-      reg [7 : 0] result;
-
-//      case (decoder_opa)
-//
-//      endcase // case (decoder_opa)
-//
-//
-//
-//      case (decoder_opa)
-//
-//      endcase // case (decoder_opa)
-//
-//
-//
-//      case (decoder_alu_op)
-//
-//      endcase // case (decoder_alu_op)
-//
-//
-//
-//      case (decoder_dest)
-//
-//      endcase // case (decoder_dest)
-    end // alu
 
 
   //----------------------------------------------------------------
