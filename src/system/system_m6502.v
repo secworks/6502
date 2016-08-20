@@ -49,23 +49,6 @@ system_m6502(
   //----------------------------------------------------------------
   // Internal constant and parameter definitions.
   //----------------------------------------------------------------
-  localparam BOOT_ADDR = 16'h0000;
-
-  localparam AMUX_TMP = 1'h0;
-  localparam AMUX_PC  = 1'h1;
-
-  localparam DMUX_AREG = 2'h0;
-  localparam DMUX_XREG = 2'h1;
-  localparam DMUX_YREG = 2'h2;
-
-  localparam M6502_CTRL_IDLE          = 3'h0;
-  localparam M6502_CTRL_GET_OPCODE    = 3'h1;
-  localparam M6502_CTRL_STORE_OPCODE  = 3'h2;
-  localparam M6502_CTRL_DECODE_OPCODE = 3'h3;
-  localparam M6502_CTRL_DATA          = 3'h4;
-  localparam M6502_CTRL_EXECUTE       = 3'h5;
-  localparam M6502_CTRL_STORE_DATA    = 3'h6;
-  localparam M6502_CTRL_UPDATE_PC     = 3'h7;
 
 
   //----------------------------------------------------------------
