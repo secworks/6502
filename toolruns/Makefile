@@ -36,13 +36,19 @@
 #
 #===================================================================
 
+ALU_SRC=../src/rtl/m6502_alu.v
+ALU_TB=../src/tb/tb_m6502_alu.v
 CPU_SRC=../src/rtl/m6502.v ../src/rtl/m6502_decoder.v  ../src/rtl/m6502_alu.v
 
 CC=iverilog
 LINT=verilator
 
 
-all: cpu.sim
+all: cpu.sim alu.sim
+
+
+alu.sim:  $(ALU_SRC)  $(ALU_TB)
+	$(CC) -Wall -o alu.sim $(ALU_SRC) $(ALU_TB)
 
 
 cpu.sim:  $(CPU_SRC)
@@ -54,6 +60,7 @@ lint:
 
 
 clean:
+	rm -f alu.sim
 	rm -f cpu.sim
 
 
