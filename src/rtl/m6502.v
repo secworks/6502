@@ -75,9 +75,9 @@ module m6502(
   //----------------------------------------------------------------
   // Registers including update variables and write enable.
   //----------------------------------------------------------------
-  reg [7 : 0]  alu_reg;
-  reg [7 : 0]  alu_new;
-  reg          alu_we;
+  reg [7 : 0]  a_reg;
+  reg [7 : 0]  a_new;
+  reg          a_we;
 
   reg [7 : 0]  x_reg;
   reg [7 : 0]  x_new;
@@ -96,7 +96,7 @@ module m6502(
   reg          zero_we;
 
   reg          overflow_reg;
-  reg          overflow_new;
+  wire         overflow_new;
   reg          overflow_we;
 
   reg          cs_reg;
@@ -188,15 +188,14 @@ module m6502(
                        );
 
   m6502_alu alu(
-                operation(alu_operation),
-                op_a(alu_op_a),
-                op_b(alu_op_a),
-                carry_in(carry_reg),
-                carry_in(carry_reg),
-                result(alu_result),
-                carry_out(carry_new),
-                zero(zero_new),
-                overflow(overflow_new)
+                .operation(alu_operation),
+                .op_a(alu_op_a),
+                .op_b(alu_op_a),
+                .carry_in(carry_reg),
+                .result(alu_result),
+                .carry(carry_new),
+                .zero(zero_new),
+                .overflow(overflow_new)
                );
 
 
@@ -209,7 +208,7 @@ module m6502(
 
       if (!reset_n)
         begin
-          alu_reg        <= 8'h0;
+          a_reg          <= 8'h0;
           x_reg          <= 8'h0;
           y_reg          <= 8'h0;
           carry_reg      <= 0;
@@ -227,8 +226,8 @@ module m6502(
         end
       else
         begin
-          if (alu_we)
-            alu_reg <= alu_new;
+          if (a_we)
+            a_reg <= a_new;
 
           if (x_we)
             x_reg <= x_new;
