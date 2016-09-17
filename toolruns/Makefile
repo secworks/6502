@@ -42,7 +42,7 @@ ALU_TB=../src/tb/tb_m6502_alu.v
 CPU_SRC=../src/rtl/m6502.v ../src/rtl/m6502_decoder.v  ../src/rtl/m6502_alu.v
 
 SYSTEM_TB=../src/system/tb/tb_system_m6502.v
-SYSTEM_SRC=../src/system/system_m6502.v $(CPU_SRC)
+SYSTEM_SRC=../src/system/rtl/system_m6502.v $(CPU_SRC)
 
 CC=iverilog
 LINT=verilator

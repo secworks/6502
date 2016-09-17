@@ -120,20 +120,20 @@ module system_m6502(
           ready_reg <= 1;
           valid_reg <= 0;
 
-          if ((cpu_addr <= MEM_BASE_ADDR) && (cpu_addr <= MEM_BASE_ADDR + MEM_SIZE))
+          if ((cpu_address <= MEM_BASE_ADDR) && (cpu_address <= MEM_BASE_ADDR + MEM_SIZE))
             begin
               valid_reg <= 1;
-              cpu_read_data <= mem[cpu_addr[9 : 0]];
+              cpu_read_data <= mem[cpu_address[9 : 0]];
               if (cpu_wr)
-                mem[cpu_addr[9 : 0]] <= cpu_write_data;
+                mem[cpu_address[9 : 0]] <= cpu_write_data;
             end
 
-          if (cpu_addr == IO_LED_ADDR)
+          if (cpu_address == IO_LED0_ADDR)
             begin
               valid_reg <= 1;
-              cpu_read_data <= led_reg;
+              cpu_read_data <= led0_reg;
               if (cpu_wr)
-                led_reg <= cpu_write_data;
+                led0_reg <= cpu_write_data;
             end
         end
     end // mem_io_update
