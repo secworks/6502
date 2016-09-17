@@ -2,11 +2,12 @@
 #
 # Makefile
 # --------
-# Makefile for building sha256 wmem, core and top simulations.
+# Makefile for building m6502 cpu, sub module as well as system
+# simulation.
 #
 #
 # Author: Joachim Strombergson
-# Copyright (c) 2013, Secworks Sweden AB
+# Copyright (c) 2016, Secworks Sweden AB
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or
@@ -40,19 +41,26 @@ ALU_SRC=../src/rtl/m6502_alu.v
 ALU_TB=../src/tb/tb_m6502_alu.v
 CPU_SRC=../src/rtl/m6502.v ../src/rtl/m6502_decoder.v  ../src/rtl/m6502_alu.v
 
+SYSTEM_TB=../src/system/tb/tb_system_m6502.v
+SYSTEM_SRC=../src/system/system_m6502.v $(CPU_SRC)
+
 CC=iverilog
 LINT=verilator
 
 
-all: cpu.sim alu.sim
+all: system.sim cpu.sim alu.sim
 
 
-alu.sim:  $(ALU_SRC)  $(ALU_TB)
-	$(CC) -Wall -o alu.sim $(ALU_SRC) $(ALU_TB)
+system.sim:  $(SYSTEM_TB) $(SYSTEM_SRC)
+	$(CC) -Wall -o system.sim $(SYSTEM_TB) $(SYSTEM_SRC)
 
 
 cpu.sim:  $(CPU_SRC)
 	$(CC) -Wall -o cpu.sim $(CPU_SRC)
+
+
+alu.sim:   $(ALU_TB) $(ALU_SRC)
+	$(CC) -Wall -o alu.sim $(ALU_TB) $(ALU_SRC)
 
 
 lint:
@@ -62,14 +70,15 @@ lint:
 clean:
 	rm -f alu.sim
 	rm -f cpu.sim
+	rm -f system.sim
 
 
 help:
 	@echo "Supported targets:"
 	@echo "------------------"
-	@echo "all:      Build all simulation targets."
-	@echo "lint:     Run the linter on both the block based and the stream based top levels."
-	@echo "clean:    Remove all filed built."
+	@echo "all:   Build all simulation targets."
+	@echo "lint:  Run the linter on both the block based and the stream based top levels."
+	@echo "clean: Remove all generated files."
 
 #===================================================================
 # EOF Makefile
