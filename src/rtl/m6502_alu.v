@@ -78,6 +78,7 @@ module m6502_alu(
   reg         tmp_zero;
   reg         tmp_overflow;
 
+
   //----------------------------------------------------------------
   // Concurrent connectivity for ports etc.
   //----------------------------------------------------------------
@@ -86,7 +87,11 @@ module m6502_alu(
   assign zero     = tmp_zero;
   assign overflow = tmp_overflow;
 
+
   //----------------------------------------------------------------
+  // alu
+  //
+  // The actual logic to implement the ALU functions.
   //----------------------------------------------------------------
   always @*
     begin : alu
