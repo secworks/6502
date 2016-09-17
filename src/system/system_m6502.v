@@ -38,33 +38,50 @@
 //
 //======================================================================
 
-system_m6502(
-             input wire            clk,
-             input wire            reset_n,
+module system_m6502(
+                    input wire          clk,
+                    input wire          reset_n,
 
-             output wire [7 : 0]   leds
-             );
+                    output wire [7 : 0] leds
+                    );
 
 
   //----------------------------------------------------------------
   // Internal constant and parameter definitions.
   //----------------------------------------------------------------
+  parameter MEM_BASE_ADDR = 16'h0000;
+  parameter MEM_SIZE      = 16'h03ff;
+  parameter IO_LED0_ADDR = 16'h1000;
 
 
   //----------------------------------------------------------------
   // Registers including update variables and write enable.
   //----------------------------------------------------------------
+  reg [7 : 0] mem [0 : 1023];
+  reg         mem_we;
+
+  reg [7 : 0] led0_reg;
+  reg [7 : 0] led0_new;
+  reg         led0_we;
+
+  reg         ready_reg;
+  reg         valid_reg;
 
 
   //----------------------------------------------------------------
-  // Wires.
+  // Wires for cpu connectivity.
   //----------------------------------------------------------------
+  wire          cpu_cs;
+  wire          cpu_wr;
+  wire [15 : 0] cpu_address;
+  reg [7 : 0]   cpu_read_data;
+  wire [7 : 0]  cpu_write_data;
 
 
   //----------------------------------------------------------------
   // Concurrent connectivity for ports etc.
   //----------------------------------------------------------------
-  assign leds = 8'h55;
+  assign leds = led0_reg;
 
 
   //----------------------------------------------------------------
@@ -73,34 +90,55 @@ system_m6502(
   m6502 m6502_cpu(
                   .clk(clk),
                   .reset_n(reset_n),
-                  .cs(),
-                  .wr(),
-                  .address(),
-                  .mem_ready(),
-                  .data_valid(),
-                  .read_data(),
-                  .write_data()
+                  .cs(cpu_cs),
+                  .wr(cpu_wr),
+                  .address(cpu_address),
+                  .mem_ready(ready_reg),
+                  .data_valid(valid_reg),
+                  .read_data(cpu_read_data),
+                  .write_data(cpu_write_data)
                   );
 
 
   //----------------------------------------------------------------
-  // reg_update
+  // sync mem and I/O access.
+  // TODO Add I/O for reading pins.
   //----------------------------------------------------------------
   always @ (posedge clk)
-    begin : reg_update
+    begin : mem_io_update
       integer i;
 
       if (!reset_n)
         begin
+          led0_reg <= 8'h0;
 
+          for (i = 0 ; i <= MEM_SIZE ; i = i + 1)
+            mem[i] <= 8'h0;
         end
       else
         begin
+          ready_reg <= 1;
+          valid_reg <= 0;
 
+          if ((cpu_addr <= MEM_BASE_ADDR) && (cpu_addr <= MEM_BASE_ADDR + MEM_SIZE))
+            begin
+              valid_reg <= 1;
+              cpu_read_data <= mem[cpu_addr[9 : 0]];
+              if (cpu_wr)
+                mem[cpu_addr[9 : 0]] <= cpu_write_data;
+            end
+
+          if (cpu_addr == IO_LED_ADDR)
+            begin
+              valid_reg <= 1;
+              cpu_read_data <= led_reg;
+              if (cpu_wr)
+                led_reg <= cpu_write_data;
+            end
         end
-    end // reg_update
+    end // mem_io_update
 
-endmodule // 6502
+endmodule // system_6502
 
 //======================================================================
 // EOF system_m6502.v
