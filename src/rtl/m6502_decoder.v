@@ -60,6 +60,7 @@ module m6502_decoder(
   localparam OP_TXA     = 8'h8a;
   localparam OP_LDA_IMM = 8'ha9;
   localparam OP_TAX     = 8'haa;
+  localparam OP_INY     = 8'hc8;
   localparam OP_DEX     = 8'hca;
   localparam OP_INX     = 8'he8;
 
@@ -132,6 +133,15 @@ module m6502_decoder(
             ilen = 3'h2;
             dest = DEST_AREG;
             alu  = ALU_NONE;
+          end
+
+        OP_INY:
+          begin
+            ilen = 3'h1;
+            a    = OP_YREG;
+            b    = OP_ONE;
+            alu  = ALU_ADC;
+            dest = DEST_YREG;
           end
 
         OP_INX:
