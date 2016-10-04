@@ -56,13 +56,19 @@ module m6502_decoder(
   //----------------------------------------------------------------
   // M6502 Opcodes:
   localparam OP_BRK     = 8'h00;
+  localparam OP_CLC     = 8'h18;
+  localparam OP_SEC     = 8'h38;
   localparam OP_JMP     = 8'h4c;
+  localparam OP_CLI     = 8'h58;
+  localparam OP_RTS     = 8'h60;
+  localparam OP_SEI     = 8'h78;
   localparam OP_TXA     = 8'h8a;
   localparam OP_LDA_IMM = 8'ha9;
   localparam OP_TAX     = 8'haa;
   localparam OP_INY     = 8'hc8;
   localparam OP_DEX     = 8'hca;
   localparam OP_INX     = 8'he8;
+  localparam OP_NOP     = 8'hea;
 
   // Symbolic names for ALU operands.
   localparam OP_AREG  = 3'h0;
