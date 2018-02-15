@@ -45,32 +45,33 @@ SYSTEM_TB=../src/system/tb/tb_system_m6502.v
 SYSTEM_SRC=../src/system/rtl/system_m6502.v $(CPU_SRC)
 
 CC=iverilog
+CC_FLAGS= -Wall
+
 LINT=verilator
+LINT_FLAGS = +1364-2001ext+ --lint-only -Wall -Wno-fatal -Wno-DECLFILENAME
 
 
 all: system.sim cpu.sim alu.sim
 
 
 system.sim:  $(SYSTEM_TB) $(SYSTEM_SRC)
-	$(CC) -Wall -o system.sim $(SYSTEM_TB) $(SYSTEM_SRC)
+	$(CC) $(CC_FLAGS) -o system.sim $(SYSTEM_TB) $(SYSTEM_SRC)
 
 
 cpu.sim:  $(CPU_SRC)
-	$(CC) -Wall -o cpu.sim $(CPU_SRC)
+	$(CC) $(CC_FLAGS) -o cpu.sim $(CPU_SRC)
 
 
 alu.sim:   $(ALU_TB) $(ALU_SRC)
-	$(CC) -Wall -o alu.sim $(ALU_TB) $(ALU_SRC)
+	$(CC) $(CC_FLAGS) -o alu.sim $(ALU_TB) $(ALU_SRC)
 
 
 lint:
-	verilator -Wall --lint-only  $(CPU_SRC)
+	$(LINT) $(LINT_FLAGS) $(CPU_SRC)
 
 
 clean:
-	rm -f alu.sim
-	rm -f cpu.sim
-	rm -f system.sim
+	rm -f *.sim
 
 
 help:
